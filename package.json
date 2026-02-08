@@ -4,7 +4,7 @@
   "description": "Auto-capture development command output and search/analyze with Claude Code",
   "type": "module",
   "bin": {
-    "logifai": "dist/cli.js"
+    "logifai": "scripts/bin-wrapper.mjs"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,6 +21,7 @@
     "dist",
     "!dist/__tests__",
     "!dist/tools",
+    "scripts",
     "skills",
     ".claude-plugin",
     "README.md",
@@ -30,6 +31,7 @@
     "build": "tsc",
     "test": "node --test dist/__tests__/*.test.js",
     "pretest": "tsc",
+    "postinstall": "node scripts/postinstall.mjs",
     "prepublishOnly": "npm run build && npm test",
     "generate-logs": "node dist/tools/log-generator.js",
     "build:binary": "bun build --compile ./src/cli.ts --outfile logifai",

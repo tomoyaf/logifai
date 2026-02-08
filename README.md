@@ -2,7 +2,6 @@
 
 **Auto-capture development logs for Claude Code — stop copy-pasting terminal output.**
 
-[![npm version](https://img.shields.io/npm/v/logifai)](https://www.npmjs.com/package/logifai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-brightgreen)](https://github.com/tomoyaf/logifai/releases)
 
@@ -43,11 +42,36 @@ When debugging with Claude Code, you're constantly doing this:
 
 ### 1. Install
 
+**macOS / Linux** (shell script)
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tomoyaf/logifai/main/install.sh | sh
 ```
 
-> Windows users: download `logifai-windows-x64.exe` from [Releases](https://github.com/tomoyaf/logifai/releases) and add it to your PATH.
+**Windows** (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/tomoyaf/logifai/main/install.ps1 | iex
+```
+
+**Homebrew** (macOS / Linux)
+
+```bash
+brew install tomoyaf/logifai/logifai
+```
+
+**Scoop** (Windows)
+
+```powershell
+scoop bucket add logifai https://github.com/tomoyaf/scoop-logifai
+scoop install logifai
+```
+
+**npm** (all platforms — auto-downloads native binary)
+
+```bash
+npm i -g logifai
+```
 
 ### 2. Capture logs
 

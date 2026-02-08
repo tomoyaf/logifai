@@ -76,3 +76,71 @@ jobs:
         with:
           files: release/*
           generate_release_notes: true
+
+  update-homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Merge checksums
+        run: cat artifacts/*/checksums.txt | sort > checksums.txt
+      - name: Extract version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      - name: Generate formula
+        run: |
+          SHA_DARWIN_ARM64=$(grep logifai-darwin-arm64 checksums.txt | awk '{print $1}')
+          SHA_DARWIN_X64=$(grep logifai-darwin-x64 checksums.txt | awk '{print $1}')
+          SHA_LINUX_ARM64=$(grep logifai-linux-arm64 checksums.txt | awk '{print $1}')
+          SHA_LINUX_X64=$(grep logifai-linux-x64 checksums.txt | awk '{print $1}')
+          sed \
+            -e "s/__VERSION__/${{ env.VERSION }}/g" \
+            -e "s/__SHA256_DARWIN_ARM64__/${SHA_DARWIN_ARM64}/g" \
+            -e "s/__SHA256_DARWIN_X64__/${SHA_DARWIN_X64}/g" \
+            -e "s/__SHA256_LINUX_ARM64__/${SHA_LINUX_ARM64}/g" \
+            -e "s/__SHA256_LINUX_X64__/${SHA_LINUX_X64}/g" \
+            packaging/homebrew/logifai.rb > logifai.rb
+      - name: Push to homebrew-logifai
+        run: |
+          git clone https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/tomoyaf/homebrew-logifai.git tap
+          mkdir -p tap/Formula
+          cp logifai.rb tap/Formula/logifai.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/logifai.rb
+          git diff --cached --quiet || git commit -m "logifai ${{ env.VERSION }}"
+          git push
+
+  update-scoop:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Merge checksums
+        run: cat artifacts/*/checksums.txt | sort > checksums.txt
+      - name: Extract version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      - name: Generate manifest
+        run: |
+          SHA_WINDOWS_X64=$(grep logifai-windows-x64.exe checksums.txt | awk '{print $1}')
+          sed \
+            -e "s/__VERSION__/${{ env.VERSION }}/g" \
+            -e "s/__SHA256_WINDOWS_X64__/${SHA_WINDOWS_X64}/g" \
+            packaging/scoop/logifai.json > logifai.json
+      - name: Push to scoop-logifai
+        run: |
+          git clone https://x-access-token:${{ secrets.SCOOP_BUCKET_TOKEN }}@github.com/tomoyaf/scoop-logifai.git bucket
+          mkdir -p bucket/bucket
+          cp logifai.json bucket/bucket/logifai.json
+          cd bucket
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bucket/logifai.json
+          git diff --cached --quiet || git commit -m "logifai ${{ env.VERSION }}"
+          git push

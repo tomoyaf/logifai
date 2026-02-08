@@ -1,6 +1,6 @@
 ---
 name: logifai-logs
-description: Search and analyze development logs captured by logifai. Use when investigating errors, debugging runtime issues, or reviewing recent application activity. Automatically triggered when user mentions "logs", "errors", "what went wrong", or references recent failures.
+description: Search and analyze development logs captured by logifai. Use when investigating errors, debugging runtime issues, or reviewing recent application activity. Triggered when user mentions "logs", "errors", "what went wrong", references recent failures, or pastes a logifai:// URI reference.
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

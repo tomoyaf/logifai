@@ -1,0 +1,32 @@
+{
+  "version": "__VERSION__",
+  "description": "Auto-capture development logs for Claude Code",
+  "homepage": "https://github.com/tomoyaf/logifai",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/tomoyaf/logifai/releases/download/v__VERSION__/logifai-windows-x64.exe",
+      "hash": "__SHA256_WINDOWS_X64__"
+    }
+  },
+  "bin": [
+    [
+      "logifai-windows-x64.exe",
+      "logifai"
+    ]
+  ],
+  "checkver": {
+    "github": "https://github.com/tomoyaf/logifai"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/tomoyaf/logifai/releases/download/v$version/logifai-windows-x64.exe"
+      }
+    },
+    "hash": {
+      "url": "https://github.com/tomoyaf/logifai/releases/download/v$version/checksums.txt",
+      "regex": "([a-f0-9]{64})\\s+logifai-windows-x64\\.exe"
+    }
+  }
+}
