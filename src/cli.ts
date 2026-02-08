@@ -6,9 +6,11 @@ import { LiveCapture } from "./live-capture.js";
 import { parseReference, resolveReference } from "./ref.js";
 import { performCleanup, parseDuration, parseSize } from "./cleanup.js";
 import { loadSettings } from "./settings.js";
+import { createRequire } from "node:module";
 import type { AddressInfo } from "node:net";
 
-const VERSION = "0.1.0";
+const require = createRequire(import.meta.url);
+const { version: VERSION } = require("../package.json") as { version: string };
 
 const HELP = `logifai - Auto-capture development command output
 

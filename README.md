@@ -46,10 +46,18 @@ When debugging with Claude Code, you're constantly doing this:
 npm install -g logifai
 ```
 
+If `logifai` command is not found after install, use `npx` instead:
+
+```bash
+npm run dev 2>&1 | npx logifai
+```
+
 ### 2. Capture logs
 
 ```bash
 npm run dev 2>&1 | logifai
+# or, without global install:
+npm run dev 2>&1 | npx logifai
 ```
 
 Output passes through to your terminal as normal — logifai records it in the background. A Web UI opens at `http://127.0.0.1:3100` for live streaming and search.
