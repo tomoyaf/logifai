@@ -4,11 +4,12 @@ import { createInterface } from "node:readline";
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { logsDir } from "./storage.js";
+import { loadSettings, saveSettings } from "./settings.js";
 import type { LiveCapture } from "./live-capture.js";
 import type { LogEntry } from "./types.js";
 
 // session-YYYYMMDD-HHMMSS-{id}.ndjson
-const SESSION_RE = /^session-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-([a-f0-9]+)\.ndjson$/;
+export const SESSION_RE = /^session-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-([a-f0-9]+)\.ndjson$/;
 
 export interface ApiContext {
   liveCapture: LiveCapture | null;
@@ -83,10 +84,13 @@ export async function handleEntries(
     const stream = createReadStream(filePath, { encoding: "utf8" });
     const rl = createInterface({ input: stream, crlfDelay: Infinity });
 
+    let lineNum = 0;
     for await (const line of rl) {
       if (!line.trim()) continue;
+      lineNum++;
       try {
         const entry = JSON.parse(line) as LogEntry;
+        (entry as unknown as Record<string, unknown>)._line = lineNum;
 
         // Apply server-side filters
         if (levelFilter && !levelFilter.includes(entry.level)) continue;
@@ -156,7 +160,7 @@ export function handleStream(
   res.on("close", cleanup);
 }
 
-async function resolveSessionFile(
+export async function resolveSessionFile(
   dir: string,
   sessionId: string
 ): Promise<string | null> {
@@ -183,6 +187,44 @@ async function resolveSessionFile(
     // dir doesn't exist
   }
   return null;
+}
+
+const VALID_LANGUAGES = new Set(["en", "ja"]);
+
+export async function handleGetSettings(
+  _req: IncomingMessage,
+  res: ServerResponse,
+): Promise<void> {
+  const settings = await loadSettings();
+  json(res, 200, settings);
+}
+
+export async function handlePutSettings(
+  req: IncomingMessage,
+  res: ServerResponse,
+): Promise<void> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  let body: unknown;
+  try {
+    body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    json(res, 400, { error: "Invalid JSON" });
+    return;
+  }
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !VALID_LANGUAGES.has((body as Record<string, unknown>).language as string)
+  ) {
+    json(res, 400, { error: "Invalid language value" });
+    return;
+  }
+  const settings = { language: (body as Record<string, string>).language as "en" | "ja" };
+  await saveSettings(settings);
+  json(res, 200, settings);
 }
 
 function json(res: ServerResponse, status: number, data: unknown): void {

@@ -4,6 +4,8 @@ import {
   handleSessions,
   handleEntries,
   handleStream,
+  handleGetSettings,
+  handlePutSettings,
   type ApiContext,
 } from "./api.js";
 import type { LiveCapture } from "./live-capture.js";
@@ -53,6 +55,16 @@ export function startServer(options: ServerOptions): Promise<Server> {
       const streamMatch = path.match(/^\/api\/sessions\/([^/]+)\/stream$/);
       if (streamMatch && req.method === "GET") {
         handleStream(req, res, decodeURIComponent(streamMatch[1]), ctx);
+        return;
+      }
+
+      // API: settings
+      if (path === "/api/settings" && req.method === "GET") {
+        await handleGetSettings(req, res);
+        return;
+      }
+      if (path === "/api/settings" && req.method === "PUT") {
+        await handlePutSettings(req, res);
         return;
       }
 

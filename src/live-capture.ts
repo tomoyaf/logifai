@@ -9,6 +9,7 @@ import { ensureLogsDir, NdjsonWriter, updateCurrentSymlink } from "./storage.js"
 
 export class LiveCapture extends EventEmitter {
   private _sessionId: string = "";
+  private lineNum: number = 0;
 
   get sessionId(): string {
     return this._sessionId;
@@ -20,6 +21,7 @@ export class LiveCapture extends EventEmitter {
   ): Promise<void> {
     const session = await createSession();
     this._sessionId = session.id;
+    this.lineNum = 0;
     const dir = await ensureLogsDir();
     const filePath = join(dir, session.filename);
     const writer = new NdjsonWriter(filePath);
@@ -32,14 +34,20 @@ export class LiveCapture extends EventEmitter {
     let pendingEntry: LogEntry | null = null;
     let stackLines: string[] = [];
 
+    const writeEntry = (entry: LogEntry): void => {
+      this.lineNum++;
+      (entry as unknown as Record<string, unknown>)._line = this.lineNum;
+      writer.write(entry);
+      this.emit("entry", entry);
+    };
+
     const flushPending = (): void => {
       if (pendingEntry) {
         if (stackLines.length > 0) {
           pendingEntry.stack = stackLines.join("\n");
         }
         const redacted = redactLogEntry(pendingEntry);
-        writer.write(redacted);
-        this.emit("entry", redacted);
+        writeEntry(redacted);
         pendingEntry = null;
         stackLines = [];
       }
@@ -60,8 +68,7 @@ export class LiveCapture extends EventEmitter {
         } else {
           const entry = normalizeLine(rawLine, session, options.source, options.project);
           const redacted = redactLogEntry(entry);
-          writer.write(redacted);
-          this.emit("entry", redacted);
+          writeEntry(redacted);
         }
         continue;
       }
@@ -74,8 +81,7 @@ export class LiveCapture extends EventEmitter {
         pendingEntry = entry;
       } else {
         const redacted = redactLogEntry(entry);
-        writer.write(redacted);
-        this.emit("entry", redacted);
+        writeEntry(redacted);
       }
     }
 

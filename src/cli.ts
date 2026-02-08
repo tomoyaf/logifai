@@ -3,6 +3,7 @@
 import { capture } from "./capture.js";
 import { startServer } from "./server.js";
 import { LiveCapture } from "./live-capture.js";
+import { parseReference, resolveReference } from "./ref.js";
 import type { AddressInfo } from "node:net";
 
 const VERSION = "0.1.0";
@@ -12,6 +13,11 @@ const HELP = `logifai - Auto-capture development command output
 Usage:
   command 2>&1 | logifai [options]    Live capture + Web UI
   logifai [options]                   Browse saved sessions
+  logifai show <reference>            Resolve a log line reference
+
+Commands:
+  show <reference>   Resolve a logifai:// reference and print entries
+    --format json|text   Output format (default: json)
 
 Options:
   --source <name>    Source label (default: "unknown")
@@ -30,6 +36,8 @@ function parseArgs(args: string[]): {
   passthrough: boolean;
   port: number;
   noUi: boolean;
+  showRef: string;
+  format: "json" | "text";
 } {
   let command: string | null = null;
   let source = "unknown";
@@ -37,11 +45,21 @@ function parseArgs(args: string[]): {
   let passthrough = true;
   let port = 3100;
   let noUi = false;
+  let showRef = "";
+  let format: "json" | "text" = "json";
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "capture") {
       command = "capture";
+    } else if (arg === "show") {
+      command = "show";
+      if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+        showRef = args[++i];
+      }
+    } else if (arg === "--format" && i + 1 < args.length) {
+      const val = args[++i];
+      if (val === "text" || val === "json") format = val;
     } else if (arg === "--source" && i + 1 < args.length) {
       source = args[++i];
     } else if (arg === "--project" && i + 1 < args.length) {
@@ -61,12 +79,38 @@ function parseArgs(args: string[]): {
     }
   }
 
-  return { command, source, project, passthrough, port, noUi };
+  return { command, source, project, passthrough, port, noUi, showRef, format };
 }
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const parsed = parseArgs(args);
+
+  // show command: resolve a logifai:// reference
+  if (parsed.command === "show") {
+    if (!parsed.showRef) {
+      process.stderr.write("Error: missing reference argument\nUsage: logifai show <logifai://SESSION:LINES>\n");
+      process.exit(1);
+    }
+    try {
+      const refs = parseReference(parsed.showRef);
+      const entries = await resolveReference(refs);
+      if (parsed.format === "text") {
+        for (const e of entries) {
+          process.stdout.write(`[${e._ref}] ${e.timestamp} ${e.level} ${e.message}\n`);
+          if (e.stack) {
+            process.stdout.write(e.stack + "\n");
+          }
+        }
+      } else {
+        process.stdout.write(JSON.stringify(entries, null, 2) + "\n");
+      }
+    } catch (err) {
+      process.stderr.write(`Error: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+    return;
+  }
 
   const isPiped = !process.stdin.isTTY;
 
@@ -96,14 +140,14 @@ async function main(): Promise<void> {
     // Keep server running for a bit after capture ends so user can browse
     process.stderr.write("Capture complete. UI still running (Ctrl+C to exit).\n");
     // Wait until user kills the process
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(() => {
       process.on("SIGINT", () => {
         server.close();
-        resolve();
+        process.exit(0);
       });
       process.on("SIGTERM", () => {
         server.close();
-        resolve();
+        process.exit(0);
       });
     });
     return;
@@ -115,14 +159,14 @@ async function main(): Promise<void> {
   process.stderr.write(`logifai UI: http://127.0.0.1:${addr.port}\n`);
   process.stderr.write("Press Ctrl+C to exit.\n");
 
-  await new Promise<void>((resolve) => {
+  await new Promise<void>(() => {
     process.on("SIGINT", () => {
       server.close();
-      resolve();
+      process.exit(0);
     });
     process.on("SIGTERM", () => {
       server.close();
-      resolve();
+      process.exit(0);
     });
   });
 }

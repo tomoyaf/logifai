@@ -79,6 +79,27 @@ jq 'select(.level == "ERROR" and .stack != null)' ~/.local/state/logifai/logs/cu
 jq -s 'group_by(.level) | map({level: .[0].level, count: length})' ~/.local/state/logifai/logs/current.ndjson
 ```
 
+## Log Line References
+
+Users may paste log line references from the Web UI in the format `logifai://SESSION_ID:LINES`.
+
+### Resolve a reference
+```bash
+logifai show 'logifai://a1b2c3d4:42,50-55'
+```
+
+### When user pastes a logifai:// reference
+1. Run `logifai show '<reference>'` to resolve it
+2. Parse the JSON output to understand the log entries
+3. Analyze as requested (explain errors, suggest fixes, etc.)
+
+### Reference format
+- Single line: `logifai://a1b2c3d4:42`
+- Multiple lines: `logifai://a1b2c3d4:42,45,50`
+- Range: `logifai://a1b2c3d4:42-55`
+- Mixed: `logifai://a1b2c3d4:10,20-30,50`
+- Multiple sessions: `logifai://a1b2c3d4:10-15+ff990011:1-5`
+
 ## Investigation Workflow
 
 When user asks about errors or issues:

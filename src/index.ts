@@ -6,3 +6,7 @@ export { redact, redactLogEntry } from "./redactor.js";
 export { logsDir, ensureLogsDir, NdjsonWriter, updateCurrentSymlink } from "./storage.js";
 export { startServer } from "./server.js";
 export { LiveCapture } from "./live-capture.js";
+export { parseReference, expandLineSpec, resolveReference, formatReference } from "./ref.js";
+export type { LineRef, ResolvedEntry } from "./ref.js";
+export { loadSettings, saveSettings, configDir } from "./settings.js";
+export type { Settings } from "./settings.js";

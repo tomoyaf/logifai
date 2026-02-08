@@ -144,4 +144,61 @@ describe("e2e", () => {
     assert.equal(code, 0);
     assert.ok(stdout.includes("hello"));
   });
+
+  it("show command resolves a logifai:// reference", async () => {
+    const env = { ...process.env, XDG_STATE_HOME: tmpDir };
+
+    // First capture some logs
+    const inputLines = ["line one\nline two\nERROR: oops\nline four\n"];
+    const { code: captureCode } = await runCli(
+      ["--no-ui", "--no-passthrough", "--source", "show-test"],
+      { input: inputLines.join(""), env }
+    );
+    assert.equal(captureCode, 0);
+
+    // Find the session ID from the created file
+    const logsDir = join(tmpDir, "logifai", "logs");
+    const files = await readdir(logsDir);
+    const sessionFile = files.find((f) => f.startsWith("session-"));
+    assert.ok(sessionFile);
+    const match = sessionFile!.match(/-([a-f0-9]+)\.ndjson$/);
+    assert.ok(match);
+    const sessionId = match![1];
+
+    // Test show command with JSON output
+    const { stdout, code } = await runCli(
+      ["show", `logifai://${sessionId}:1,3`],
+      { env }
+    );
+    assert.equal(code, 0);
+    const entries = JSON.parse(stdout);
+    assert.equal(entries.length, 2);
+    assert.equal(entries[0]._line, 1);
+    assert.equal(entries[1]._line, 3);
+    assert.equal(entries[1].level, "ERROR");
+
+    // Test show command with text output
+    const { stdout: textOut, code: textCode } = await runCli(
+      ["show", `logifai://${sessionId}:2`, "--format", "text"],
+      { env }
+    );
+    assert.equal(textCode, 0);
+    assert.ok(textOut.includes("line two"));
+  });
+
+  it("show command errors on missing reference", async () => {
+    const { stderr, code } = await runCli(["show"]);
+    assert.equal(code, 1);
+    assert.ok(stderr.includes("missing reference"));
+  });
+
+  it("show command errors on non-existent session", async () => {
+    const env = { ...process.env, XDG_STATE_HOME: tmpDir };
+    const { stderr, code } = await runCli(
+      ["show", "logifai://deadbeef:1"],
+      { env }
+    );
+    assert.equal(code, 1);
+    assert.ok(stderr.includes("Session not found"));
+  });
 });
