@@ -111,7 +111,11 @@ Each log line becomes a structured JSON entry:
   "project": "/home/user/my-app",
   "session_id": "a1b2c3d4",
   "git_branch": "feature/auth",
-  "stack": "Error: Module not found\n    at Object.<anonymous> ..."
+  "git_commit": "e91d055",
+  "pid": 12345,
+  "raw": false,
+  "stack": "Error: Module not found\n    at Object.<anonymous> ...",
+  "_original": null
 }
 ```
 
@@ -123,6 +127,17 @@ The Claude Code Skill (installed via `/plugin install` or manually to `~/.claude
 Usage:
   command 2>&1 | logifai [options]    Live capture + Web UI
   logifai [options]                   Browse saved sessions
+  logifai show <reference>            Resolve a log line reference
+  logifai cleanup [options]           Clean up old session files
+
+Commands:
+  show <reference>   Resolve a logifai:// reference and print entries
+    --format json|text   Output format (default: json)
+
+  cleanup            Delete old session files based on retention settings
+    --older-than <duration>  Delete sessions older than (e.g. "30d")
+    --max-size <size>        Max total size (e.g. "1G", "500M")
+    --dry-run                Show what would be deleted without deleting
 
 Options:
   --source <name>    Source label (default: "unknown")
@@ -223,7 +238,7 @@ All data stays on your machine. No external services, no telemetry, no network c
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| **Phase 1** | Done | Pipe capture, NDJSON storage, normalizer, redactor, Web UI, Claude Code Skill |
+| **Phase 1** | Done | Pipe capture, NDJSON storage, normalizer, redactor, Web UI, Claude Code Skill, `show` command, `cleanup` command, settings management |
 | **Phase 2** | Planned | `logifai exec` — child process mode with TTY propagation and signal forwarding |
 | **Phase 3** | Planned | SQLite FTS5 index, `.logifai.toml` config file, `logifai start` |
 | **Phase 4** | Planned | MCP server, semantic search, anomaly detection |

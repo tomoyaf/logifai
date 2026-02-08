@@ -29,6 +29,7 @@ Each line is a JSON object:
   "project": "/home/user/my-app",
   "session_id": "a1b2c3d4",
   "git_branch": "feature/auth",
+  "git_commit": "e91d055",
   "pid": 12345,
   "raw": true,
   "stack": "Error stack trace if detected",

@@ -19,7 +19,7 @@ logifai は、開発コマンドの出力を自動キャプチャし、Claude Co
 
 ### 段階的実装（4フェーズ）
 
-- **Phase 1（最小MVP）**: パイプキャプチャ (`logifai`) + NDJSON 保存 + 正規化エンジン + リダクション + Web UI + Claude Code Skill
+- **Phase 1（最小MVP）**: パイプキャプチャ (`logifai`) + NDJSON 保存 + 正規化エンジン + リダクション + Web UI + Claude Code Skill + `show` コマンド（ログ行参照解決） + `cleanup` コマンド（保持ポリシーによるセッション削除） + 設定管理（`settings.json`）
 - **Phase 2**: 子プロセス対応 (`logifai exec`) + TTY伝播 + シグナル転送
 - **Phase 3**: SQLite FTS5 インデックス + `.logifai.toml` 設定ファイル + `logifai start`
 - **Phase 4**: MCP サーバー + セマンティック検索 + 異常検知
@@ -32,6 +32,25 @@ logifai は、開発コマンドの出力を自動キャプチャし、Claude Co
 ~/.config/logifai/               # 設定ファイル
 ~/.cache/logifai/                # キャッシュ
 ```
+
+### NDJSON スキーマ
+
+各ログ行は以下のフィールドを持つ JSON オブジェクト：
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `timestamp` | string | ISO 8601 形式 |
+| `level` | string | `ERROR` / `WARN` / `INFO` / `DEBUG` |
+| `message` | string | ログメッセージ本文 |
+| `source` | string | キャプチャ元コマンド |
+| `project` | string | プロジェクトパス |
+| `session_id` | string | セッション識別子（UUID 先頭8文字） |
+| `git_branch` | string\|null | Git ブランチ |
+| `git_commit` | string\|null | Git コミットハッシュ（短縮形） |
+| `pid` | number | プロセス ID |
+| `raw` | boolean | 非構造化ログの場合 `true` |
+| `stack` | string\|null | スタックトレース |
+| `_original` | object\|null | 元の JSON フィールド（JSON 入力の場合） |
 
 ### 正規化エンジン
 
