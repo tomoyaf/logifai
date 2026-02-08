@@ -9,30 +9,41 @@ export function getHtmlPage(): string {
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;
-  --fg:#e0e0e0;--fg2:#a0a0a0;
-  --red:#ff4444;--yellow:#ffcc00;--blue:#4fc3f7;--gray:#888;
+  --fg:#e0e0e0;--fg2:#9a9ab0;
+  --red:#e05565;--yellow:#e0b050;--blue:#4fc3f7;--gray:#7a7a90;
+  --red-bg:rgba(224,85,101,.12);--yellow-bg:rgba(224,176,80,.12);--blue-bg:rgba(79,195,247,.12);--gray-bg:rgba(122,122,144,.12);
   --border:#2a2a4a;--hover:#1e2a4a;
 }
 body{font-family:"SF Mono","Cascadia Code","Fira Code",Consolas,monospace;font-size:13px;background:var(--bg);color:var(--fg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 a{color:var(--blue);text-decoration:none}
 
 /* Header */
-.header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
 .header h1{font-size:16px;font-weight:600;color:var(--blue)}
-.header select{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:inherit;font-size:12px;min-width:260px}
+.header select{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:inherit;font-size:12px;min-width:260px;transition:border-color .2s}
+.header select:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .header .live-badge{background:var(--red);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .session-info{margin-left:auto;color:var(--fg2);font-size:11px}
 
 /* Filter bar */
-.filters{display:flex;align-items:center;gap:12px;padding:6px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.filters{display:flex;align-items:center;gap:12px;padding:6px 16px;background:rgba(22,33,62,.6);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
 .filters label{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;user-select:none}
-.filters input[type=checkbox]{accent-color:var(--blue)}
+.filters input[type=checkbox]{appearance:none;-webkit-appearance:none;width:14px;height:14px;border:1px solid var(--border);border-radius:3px;background:var(--bg);cursor:pointer;position:relative;transition:background .15s,border-color .15s;flex-shrink:0}
+.filters input[type=checkbox]:checked{background:var(--blue);border-color:var(--blue)}
+.filters input[type=checkbox]:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.filters input[type=checkbox]:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .level-error{color:var(--red)}.level-warn{color:var(--yellow)}.level-info{color:var(--blue)}.level-debug{color:var(--gray)}
-.search-box{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:inherit;font-size:12px;width:240px}
+.search-wrapper{position:relative;display:inline-flex;align-items:center}
+.search-wrapper svg{position:absolute;left:8px;width:14px;height:14px;color:var(--fg2);pointer-events:none}
+.search-box{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:4px 8px 4px 28px;font-family:inherit;font-size:12px;width:240px;transition:border-color .2s,box-shadow .2s}
 .search-box::placeholder{color:var(--fg2)}
-.follow-btn{background:var(--bg3);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:inherit}
+.search-box:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(79,195,247,.2)}
+.follow-btn{background:var(--bg3);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:inherit;transition:background .2s,border-color .2s,color .2s}
+.follow-btn:hover{border-color:var(--blue)}
+.follow-btn:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .follow-btn.active{background:var(--blue);color:#000;border-color:var(--blue)}
+.follow-btn.active:hover{background:#6dd0f9}
 .entry-count{color:var(--fg2);font-size:11px;margin-left:auto}
 
 /* Log table */
@@ -40,28 +51,42 @@ a{color:var(--blue);text-decoration:none}
 table{width:100%;border-collapse:collapse}
 thead{position:sticky;top:0;z-index:1}
 th{background:var(--bg2);color:var(--fg2);padding:6px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-td{padding:4px 12px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
+td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
+tr{transition:background .15s ease}
+tr:nth-child(even){background:rgba(255,255,255,.015)}
 tr:hover{background:var(--hover)}
 tr.selected{background:var(--bg3)}
-td.ts{width:200px;color:var(--fg2);font-size:12px}
-td.lvl{width:60px;font-weight:700;font-size:12px}
+td.ts{width:110px;min-width:110px;color:var(--fg2);font-size:12px}
+td.lvl{width:76px;min-width:76px;font-weight:700;font-size:12px;overflow:visible}
 td.msg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.src{width:120px;color:var(--fg2);font-size:12px}
 .lvl-ERROR{color:var(--red)}.lvl-WARN{color:var(--yellow)}.lvl-INFO{color:var(--blue)}.lvl-DEBUG{color:var(--gray)}
+.level-pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.level-pill.lvl-ERROR{background:var(--red-bg);border:1px solid rgba(224,85,101,.3)}
+.level-pill.lvl-WARN{background:var(--yellow-bg);border:1px solid rgba(224,176,80,.3)}
+.level-pill.lvl-INFO{background:var(--blue-bg);border:1px solid rgba(79,195,247,.3)}
+.level-pill.lvl-DEBUG{background:var(--gray-bg);border:1px solid rgba(122,122,144,.3)}
 
 /* Detail panel */
 .detail-panel{border-top:2px solid var(--border);background:var(--bg2);padding:12px 16px;max-height:40vh;overflow:auto;flex-shrink:0;display:none}
-.detail-panel.open{display:block}
+.detail-panel.open{display:block;animation:slideUp .25s ease}
+@keyframes slideUp{from{max-height:0;padding-top:0;padding-bottom:0;opacity:0}to{max-height:40vh;padding-top:12px;padding-bottom:12px;opacity:1}}
 .detail-panel h3{font-size:13px;margin-bottom:8px;color:var(--blue)}
 .detail-section{margin-bottom:12px}
 .detail-section h4{font-size:11px;color:var(--fg2);margin-bottom:4px;text-transform:uppercase}
 .detail-section pre{background:var(--bg);padding:8px;border-radius:4px;overflow-x:auto;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-all}
-.detail-close{float:right;background:none;border:none;color:var(--fg2);cursor:pointer;font-size:16px;line-height:1}
+.meta-grid{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;background:var(--bg);padding:10px 12px;border-radius:4px;font-size:12px;line-height:1.5}
+.meta-grid dt{color:var(--fg2);font-weight:600;white-space:nowrap}
+.meta-grid dd{color:var(--fg);word-break:break-all}
+.detail-close{float:right;background:none;border:none;color:var(--fg2);cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;border-radius:4px;transition:background .2s,color .2s}
+.detail-close:hover{background:rgba(255,255,255,.1);color:var(--fg)}
+.detail-close:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 
 /* Load more */
 .load-more{text-align:center;padding:12px}
-.load-more button{background:var(--bg3);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:6px 24px;cursor:pointer;font-family:inherit;font-size:12px}
-.load-more button:hover{background:var(--blue);color:#000}
+.load-more button{background:var(--bg3);color:var(--fg);border:1px solid var(--border);border-radius:4px;padding:6px 24px;cursor:pointer;font-family:inherit;font-size:12px;transition:background .2s,border-color .2s,color .2s}
+.load-more button:hover{background:var(--blue);color:#000;border-color:var(--blue)}
+.load-more button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 
 /* Empty state */
 .empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--fg2);font-size:14px}
@@ -81,7 +106,7 @@ td.src{width:120px;color:var(--fg2);font-size:12px}
   <label class="level-warn"><input type="checkbox" data-level="WARN" checked> WARN</label>
   <label class="level-info"><input type="checkbox" data-level="INFO" checked> INFO</label>
   <label class="level-debug"><input type="checkbox" data-level="DEBUG" checked> DEBUG</label>
-  <input type="text" class="search-box" id="searchBox" placeholder="Filter messages...">
+  <div class="search-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" class="search-box" id="searchBox" placeholder="Filter messages..."></div>
   <button class="follow-btn active" id="followBtn">Follow</button>
   <span class="entry-count" id="entryCount"></span>
 </div>
@@ -100,7 +125,6 @@ td.src{width:120px;color:var(--fg2);font-size:12px}
 
 <div class="detail-panel" id="detailPanel">
   <button class="detail-close" id="detailClose">&times;</button>
-  <h3>Entry Details</h3>
   <div id="detailContent"></div>
 </div>
 
@@ -293,8 +317,11 @@ td.src{width:120px;color:var(--fg2);font-size:12px}
     tdTs.textContent = formatTimestamp(entry.timestamp);
 
     const tdLvl = document.createElement("td");
-    tdLvl.className = "lvl lvl-" + entry.level;
-    tdLvl.textContent = entry.level;
+    tdLvl.className = "lvl";
+    const lvlSpan = document.createElement("span");
+    lvlSpan.className = "level-pill lvl-" + entry.level;
+    lvlSpan.textContent = entry.level;
+    tdLvl.appendChild(lvlSpan);
 
     const tdMsg = document.createElement("td");
     tdMsg.className = "msg";
@@ -339,16 +366,21 @@ td.src{width:120px;color:var(--fg2);font-size:12px}
 
     let html = "";
     html += '<div class="detail-section"><h4>Message</h4><pre>' + escapeHtml(entry.message) + '</pre></div>';
-    html += '<div class="detail-section"><h4>Metadata</h4><pre>';
-    html += "Timestamp: " + escapeHtml(entry.timestamp) + "\\n";
-    html += "Level: " + entry.level + "\\n";
-    html += "Source: " + escapeHtml(entry.source || "") + "\\n";
-    html += "Project: " + escapeHtml(entry.project || "") + "\\n";
-    html += "Session: " + escapeHtml(entry.session_id || "") + "\\n";
-    html += "Git Branch: " + escapeHtml(entry.git_branch || "N/A") + "\\n";
-    html += "PID: " + (entry.pid || "") + "\\n";
-    html += "Raw: " + entry.raw;
-    html += '</pre></div>';
+    html += '<div class="detail-section"><h4>Metadata</h4><dl class="meta-grid">';
+    const metaFields = [
+      ["Timestamp", escapeHtml(entry.timestamp)],
+      ["Level", entry.level],
+      ["Source", escapeHtml(entry.source || "")],
+      ["Project", escapeHtml(entry.project || "")],
+      ["Session", escapeHtml(entry.session_id || "")],
+      ["Git Branch", escapeHtml(entry.git_branch || "N/A")],
+      ["PID", String(entry.pid || "")],
+      ["Raw", escapeHtml(entry.raw || "")]
+    ];
+    metaFields.forEach(function(f) {
+      html += "<dt>" + f[0] + "</dt><dd>" + (f[1] || "") + "</dd>";
+    });
+    html += '</dl></div>';
 
     if (entry.stack) {
       html += '<div class="detail-section"><h4>Stack Trace</h4><pre style="color:var(--red)">' + escapeHtml(entry.stack) + '</pre></div>';
@@ -367,7 +399,8 @@ td.src{width:120px;color:var(--fg2);font-size:12px}
   }
 
   function escapeHtml(s) {
-    if (!s) return "";
+    if (s == null || s === "") return "";
+    if (typeof s !== "string") s = String(s);
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
