@@ -58,6 +58,8 @@ detect_arch() {
 
 # --- main ---
 
+PATH_ADDED=0
+
 main() {
   OS="$(detect_os)"
   ARCH="$(detect_arch)"
@@ -121,7 +123,15 @@ main() {
   # Add to PATH if needed
   add_to_path
 
-  info "Done! Run 'logifai --version' to verify."
+  printf '\n'
+  if [ "$PATH_ADDED" = "1" ]; then
+    info "To start using logifai, run:"
+    printf '\n'
+    info "  source ${RC_FILE}"
+    printf '\n'
+  else
+    info "Done! Run 'logifai --version' to verify."
+  fi
 }
 
 add_to_path() {
@@ -157,7 +167,7 @@ add_to_path() {
 
   printf '\n# logifai\n%s\n' "$EXPORT_LINE" >> "$RC_FILE"
   info "Added ${INSTALL_DIR} to PATH in ${RC_FILE}"
-  info "Restart your shell or run: source ${RC_FILE}"
+  PATH_ADDED=1
 }
 
 main
