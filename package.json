@@ -1,6 +1,6 @@
 {
   "name": "logifai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Auto-capture development command output and search/analyze with Claude Code",
   "type": "module",
   "bin": {
