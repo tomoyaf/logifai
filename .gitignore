@@ -3,3 +3,6 @@ dist/
 *.tsbuildinfo
 doc.md
 product.md
+logifai-*
+dist/logifai-*
+dist/logifai

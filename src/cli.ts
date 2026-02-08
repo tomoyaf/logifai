@@ -6,11 +6,9 @@ import { LiveCapture } from "./live-capture.js";
 import { parseReference, resolveReference } from "./ref.js";
 import { performCleanup, parseDuration, parseSize } from "./cleanup.js";
 import { loadSettings } from "./settings.js";
-import { createRequire } from "node:module";
+import { VERSION } from "./version.js";
+import { showUpdateNotification, performUpdate } from "./update.js";
 import type { AddressInfo } from "node:net";
-
-const require = createRequire(import.meta.url);
-const { version: VERSION } = require("../package.json") as { version: string };
 
 const HELP = `logifai - Auto-capture development command output
 
@@ -19,6 +17,7 @@ Usage:
   logifai [options]                   Browse saved sessions
   logifai show <reference>            Resolve a log line reference
   logifai cleanup [options]           Clean up old session files
+  logifai update                      Update to the latest version
 
 Commands:
   show <reference>   Resolve a logifai:// reference and print entries
@@ -28,6 +27,8 @@ Commands:
     --older-than <duration>  Delete sessions older than (e.g. "30d")
     --max-size <size>        Max total size (e.g. "1G", "500M")
     --dry-run                Show what would be deleted without deleting
+
+  update             Update logifai to the latest version
 
 Options:
   --source <name>    Source label (default: "unknown")
@@ -68,6 +69,8 @@ function parseArgs(args: string[]): {
     const arg = args[i];
     if (arg === "capture") {
       command = "capture";
+    } else if (arg === "update") {
+      command = "update";
     } else if (arg === "cleanup") {
       command = "cleanup";
     } else if (arg === "show") {
@@ -116,6 +119,15 @@ function formatBytes(bytes: number): string {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const parsed = parseArgs(args);
+
+  // update command
+  if (parsed.command === "update") {
+    await performUpdate();
+    return;
+  }
+
+  // Fire-and-forget update notification for other commands
+  showUpdateNotification().catch(() => {});
 
   // show command: resolve a logifai:// reference
   if (parsed.command === "show") {

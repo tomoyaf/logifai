@@ -192,6 +192,18 @@ describe("e2e", () => {
     assert.ok(stderr.includes("missing reference"));
   });
 
+  it("preserves ANSI escape codes in passthrough output", async () => {
+    const env = { ...process.env, XDG_STATE_HOME: tmpDir };
+    const ansiInput = "\x1b[31mERROR: red text\x1b[0m\n";
+    const { stdout, code } = await runCli(
+      ["--no-ui", "--source", "ansi-test"],
+      { input: ansiInput, env }
+    );
+    assert.equal(code, 0);
+    assert.ok(stdout.includes("\x1b[31m"), "should preserve ANSI color start");
+    assert.ok(stdout.includes("\x1b[0m"), "should preserve ANSI reset");
+  });
+
   it("show command errors on non-existent session", async () => {
     const env = { ...process.env, XDG_STATE_HOME: tmpDir };
     const { stderr, code } = await runCli(

@@ -12,8 +12,15 @@ logifai は、開発コマンドの出力を自動キャプチャし、Claude Co
 
 - **言語**: TypeScript (Node.js)
 - **依存関係**: 最小（標準ライブラリ中心）
+- **配布**: Bun compile によるシングルバイナリ + npm パッケージ
 - **ストレージ**: NDJSON ファイル（Phase 1）、SQLite FTS5（Phase 3）
 - **AI統合**: Claude Code Skill（Phase 1-3）、MCP サーバー（Phase 4）
+
+## ビルド
+
+- **開発用**: `npm run build` (tsc) → `npm test` (node --test)
+- **バイナリ**: `npm run build:binary` (Bun compile、ローカルプラットフォーム)
+- **全プラットフォーム**: `npm run build:all` (クロスコンパイル)
 
 ## アーキテクチャ
 

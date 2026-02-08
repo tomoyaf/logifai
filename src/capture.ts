@@ -21,6 +21,13 @@ export async function capture(
   // Ignore SIGPIPE (e.g. downstream consumer closes pipe)
   process.on("SIGPIPE", () => {});
 
+  // Raw byte passthrough: write chunks directly to preserve ANSI codes and \r\n
+  if (options.passthrough) {
+    input.on("data", (chunk: Buffer) => {
+      process.stdout.write(chunk);
+    });
+  }
+
   const rl = createInterface({ input, crlfDelay: Infinity });
 
   let pendingEntry: LogEntry | null = null;
@@ -38,11 +45,6 @@ export async function capture(
   }
 
   for await (const rawLine of rl) {
-    // Passthrough: echo to stdout
-    if (options.passthrough) {
-      process.stdout.write(rawLine + "\n");
-    }
-
     // Skip empty lines
     if (rawLine.trim() === "") continue;
 

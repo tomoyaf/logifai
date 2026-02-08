@@ -31,6 +31,13 @@ export class LiveCapture extends EventEmitter {
 
     process.on("SIGPIPE", () => {});
 
+    // Raw byte passthrough: write chunks directly to preserve ANSI codes and \r\n
+    if (options.passthrough) {
+      input.on("data", (chunk: Buffer) => {
+        process.stdout.write(chunk);
+      });
+    }
+
     const rl = createInterface({ input, crlfDelay: Infinity });
 
     let pendingEntry: LogEntry | null = null;
@@ -56,10 +63,6 @@ export class LiveCapture extends EventEmitter {
     };
 
     for await (const rawLine of rl) {
-      if (options.passthrough) {
-        process.stdout.write(rawLine + "\n");
-      }
-
       if (rawLine.trim() === "") continue;
 
       const stripped = stripAnsi(rawLine);

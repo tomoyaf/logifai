@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - bun-linux-x64
+          - bun-linux-arm64
+          - bun-darwin-x64
+          - bun-darwin-arm64
+          - bun-windows-x64
+        include:
+          - target: bun-linux-x64
+            artifact: logifai-linux-x64
+          - target: bun-linux-arm64
+            artifact: logifai-linux-arm64
+          - target: bun-darwin-x64
+            artifact: logifai-darwin-x64
+          - target: bun-darwin-arm64
+            artifact: logifai-darwin-arm64
+          - target: bun-windows-x64
+            artifact: logifai-windows-x64.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Build binary
+        run: bun build --compile --target=${{ matrix.target }} ./src/cli.ts --outfile ${{ matrix.artifact }}
+      - name: Generate checksum
+        run: sha256sum ${{ matrix.artifact }} >> checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            checksums.txt
+
+  release:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Merge checksums
+        run: cat artifacts/*/checksums.txt | sort > checksums.txt
+      - name: Collect binaries
+        run: |
+          mkdir release
+          for dir in artifacts/logifai-*; do
+            name=$(basename "$dir")
+            cp "$dir/$name" release/
+          done
+          cp checksums.txt release/
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

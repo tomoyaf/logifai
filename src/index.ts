@@ -12,3 +12,5 @@ export { loadSettings, saveSettings, configDir, DEFAULT_RETENTION } from "./sett
 export type { Settings, RetentionSettings } from "./settings.js";
 export { performCleanup, autoCleanup, parseDuration, parseSize } from "./cleanup.js";
 export type { CleanupResult, CleanupOptions } from "./cleanup.js";
+export { VERSION } from "./version.js";
+export { checkForUpdate, performUpdate, showUpdateNotification } from "./update.js";

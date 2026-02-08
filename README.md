@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/logifai)](https://www.npmjs.com/package/logifai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
+[![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-brightgreen)](https://github.com/tomoyaf/logifai/releases)
 
 ## The Problem
 
@@ -36,11 +36,19 @@ When debugging with Claude Code, you're constantly doing this:
 - **Automatic Redaction** — API keys, tokens, passwords, and connection strings are masked before storage
 - **Claude Code Skill** — Claude searches your logs automatically when you ask about errors
 - **NDJSON Storage** — structured, greppable, `jq`-friendly format
-- **Zero Dependencies** — built on Node.js standard library only
+- **Zero Runtime Dependencies** — built on Node.js standard library only
 
 ## Quick Start
 
 ### 1. Install
+
+**Single binary (recommended)**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tomoyaf/logifai/main/install.sh | sh
+```
+
+**npm (alternative)**
 
 ```bash
 npm install -g logifai
@@ -137,6 +145,7 @@ Usage:
   logifai [options]                   Browse saved sessions
   logifai show <reference>            Resolve a log line reference
   logifai cleanup [options]           Clean up old session files
+  logifai update                      Update to the latest version
 
 Commands:
   show <reference>   Resolve a logifai:// reference and print entries
@@ -146,6 +155,8 @@ Commands:
     --older-than <duration>  Delete sessions older than (e.g. "30d")
     --max-size <size>        Max total size (e.g. "1G", "500M")
     --dry-run                Show what would be deleted without deleting
+
+  update             Update logifai to the latest version
 
 Options:
   --source <name>    Source label (default: "unknown")
@@ -267,11 +278,20 @@ Contributions are welcome! Please:
 ### Development
 
 ```bash
-git clone https://github.com/user/logifai.git
+git clone https://github.com/tomoyaf/logifai.git
 cd logifai
 npm install
-npm run build
-npm test
+npm run build    # TypeScript compilation
+npm test         # Run tests with node:test
+```
+
+#### Building binaries
+
+Requires [Bun](https://bun.sh/) for binary compilation:
+
+```bash
+npm run build:binary         # Local platform binary
+npm run build:all            # All platforms (cross-compile)
 ```
 
 ## License
