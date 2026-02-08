@@ -23,7 +23,6 @@
     "!dist/tools",
     "skills",
     ".claude-plugin",
-    "marketplace.json",
     "README.md",
     "LICENSE"
   ],
