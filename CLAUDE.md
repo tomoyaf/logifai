@@ -22,11 +22,41 @@ logifai は、開発コマンドの出力を自動キャプチャし、Claude Co
 - **バイナリ**: `npm run build:binary` (Bun compile、ローカルプラットフォーム)
 - **全プラットフォーム**: `npm run build:all` (クロスコンパイル)
 
+## 配布
+
+- **プライマリ**: Bun compile によるシングルバイナリ（GitHub Releases で 5 プラットフォーム配布）
+- **セカンダリ**: npm パッケージ（`npm i -g logifai`、後方互換）
+- **インストーラ**: `install.sh` — OS/アーキテクチャ自動検出、SHA256 検証、PATH 自動設定
+- **自動更新**: `logifai update` — GitHub Releases API でバージョンチェック → バイナリダウンロード → SHA256 検証 → 置換
+- **CI/CD**: `.github/workflows/release.yml` — `v*` タグで自動ビルド＆リリース
+
+## 主要モジュール
+
+| モジュール | 役割 |
+|-----------|------|
+| `cli.ts` | CLI エントリポイント、引数パース、コマンドディスパッチ |
+| `capture.ts` | パイプキャプチャ（`--no-ui` モード） |
+| `live-capture.ts` | ライブキャプチャ（Web UI 連携、SSE） |
+| `normalizer.ts` | ログ行の正規化（JSON 検出、レベル推論、スタックトレース検出） |
+| `redactor.ts` | 秘密情報の自動マスキング |
+| `storage.ts` | NDJSON ファイル書き込み、ディレクトリ管理 |
+| `session.ts` | セッション作成、Git 情報取得 |
+| `server.ts` | Web UI HTTP サーバー + 埋め込み HTML |
+| `api.ts` | REST API エンドポイント |
+| `ref.ts` | ログ行参照（`logifai://` URI）の解析と解決 |
+| `cleanup.ts` | セッションファイルの保持ポリシー管理 |
+| `settings.ts` | 設定ファイルの読み書き |
+| `version.ts` | バージョン定数（Bun compile 互換） |
+| `update.ts` | 自動更新（GitHub Releases チェック、バイナリダウンロード） |
+| `types.ts` | 型定義（`LogEntry`, `SessionInfo`, `CaptureOptions`） |
+| `ui-html.ts` | Web UI HTML テンプレート（`server.ts` から import） |
+| `index.ts` | パッケージエントリポイント（npm 用 re-export） |
+
 ## アーキテクチャ
 
 ### 段階的実装（4フェーズ）
 
-- **Phase 1（最小MVP）**: パイプキャプチャ (`logifai`) + NDJSON 保存 + 正規化エンジン + リダクション + Web UI + Claude Code Skill + `show` コマンド（ログ行参照解決） + `cleanup` コマンド（保持ポリシーによるセッション削除） + 設定管理（`settings.json`）
+- **Phase 1（最小MVP）**: パイプキャプチャ (`logifai`) + NDJSON 保存 + 正規化エンジン + リダクション + Web UI + Claude Code Skill + `show` コマンド + `cleanup` コマンド + 設定管理 + Bun compile シングルバイナリ配布 + `update` コマンド（自動更新）
 - **Phase 2**: 子プロセス対応 (`logifai exec`) + TTY伝播 + シグナル転送
 - **Phase 3**: SQLite FTS5 インデックス + `.logifai.toml` 設定ファイル + `logifai start`
 - **Phase 4**: MCP サーバー + セマンティック検索 + 異常検知
@@ -58,6 +88,8 @@ logifai は、開発コマンドの出力を自動キャプチャし、Claude Co
 | `raw` | boolean | 非構造化ログの場合 `true` |
 | `stack` | string\|null | スタックトレース |
 | `_original` | object\|null | 元の JSON フィールド（JSON 入力の場合） |
+
+> `_line`（1-based 物理行番号）は NDJSON ファイルには保存されないが、API レスポンス・`show` コマンド・Web UI でランタイム付与される。
 
 ### 正規化エンジン
 

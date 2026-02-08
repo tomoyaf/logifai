@@ -36,36 +36,23 @@ When debugging with Claude Code, you're constantly doing this:
 - **Automatic Redaction** — API keys, tokens, passwords, and connection strings are masked before storage
 - **Claude Code Skill** — Claude searches your logs automatically when you ask about errors
 - **NDJSON Storage** — structured, greppable, `jq`-friendly format
-- **Zero Runtime Dependencies** — built on Node.js standard library only
+- **Zero Runtime Dependencies** — single binary, no runtime needed
+- **Self-Update** — `logifai update` checks GitHub Releases and updates in-place
 
 ## Quick Start
 
 ### 1. Install
 
-**Single binary (recommended)**
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tomoyaf/logifai/main/install.sh | sh
 ```
 
-**npm (alternative)**
-
-```bash
-npm install -g logifai
-```
-
-If `logifai` command is not found after install, use `npx` instead:
-
-```bash
-npm run dev 2>&1 | npx logifai
-```
+> Windows users: download `logifai-windows-x64.exe` from [Releases](https://github.com/tomoyaf/logifai/releases) and add it to your PATH.
 
 ### 2. Capture logs
 
 ```bash
 npm run dev 2>&1 | logifai
-# or, without global install:
-npm run dev 2>&1 | npx logifai
 ```
 
 Output passes through to your terminal as normal — logifai records it in the background. A Web UI opens at `http://127.0.0.1:3100` for live streaming and search.
@@ -88,7 +75,9 @@ logifai
 **Manual copy (alternative)**
 
 ```bash
-cp -r "$(npm root -g)/logifai/skills/logifai" ~/.claude/skills/logifai
+mkdir -p ~/.claude/skills/logifai
+curl -fsSL https://raw.githubusercontent.com/tomoyaf/logifai/main/skills/logifai/SKILL.md \
+  -o ~/.claude/skills/logifai/SKILL.md
 ```
 
 ### 4. Ask Claude
@@ -199,6 +188,9 @@ npm run dev 2>&1 | logifai --port 8080
 
 # Browse saved sessions (no pipe needed)
 logifai
+
+# Update to the latest version
+logifai update
 ```
 
 ## Storage
@@ -251,13 +243,13 @@ Sensitive data is automatically masked before being written to disk:
 
 ### Local Only
 
-All data stays on your machine. No external services, no telemetry, no network calls.
+All captured data stays on your machine. No telemetry. The only network call is an optional update check to GitHub Releases (once per day, skipped when `CI=true`).
 
 ## Roadmap
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| **Phase 1** | Done | Pipe capture, NDJSON storage, normalizer, redactor, Web UI, Claude Code Skill, `show` command, `cleanup` command, settings management |
+| **Phase 1** | Done | Pipe capture, NDJSON storage, normalizer, redactor, Web UI, Claude Code Skill, `show` command, `cleanup` command, settings management, single binary distribution, `update` command |
 | **Phase 2** | Planned | `logifai exec` — child process mode with TTY propagation and signal forwarding |
 | **Phase 3** | Planned | SQLite FTS5 index, `.logifai.toml` config file, `logifai start` |
 | **Phase 4** | Planned | MCP server, semantic search, anomaly detection |
