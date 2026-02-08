@@ -22,7 +22,7 @@ When debugging with Claude Code, you're constantly doing this:
 **logifai eliminates steps 3-5.** Your logs are always there — just ask Claude.
 
 ```
-1. npm run dev 2>&1 | logifai capture
+1. npm run dev 2>&1 | logifai
 2. Hit an error
 3. Ask Claude Code "what went wrong?"
 4. Claude automatically searches your logs and answers
@@ -30,7 +30,7 @@ When debugging with Claude Code, you're constantly doing this:
 
 ## Features
 
-- **Pipe & Capture** — `command 2>&1 | logifai capture` records everything
+- **Pipe & Capture** — `command 2>&1 | logifai` records everything
 - **Smart Normalization** — auto-detects JSON, infers log levels (ERROR/WARN/INFO/DEBUG), groups stack traces
 - **Automatic Redaction** — API keys, tokens, passwords, and connection strings are masked before storage
 - **Claude Code Skill** — Claude searches your logs automatically when you ask about errors
@@ -48,12 +48,21 @@ npm install -g logifai
 ### 2. Capture logs
 
 ```bash
-npm run dev 2>&1 | logifai capture
+npm run dev 2>&1 | logifai
 ```
 
 Output passes through to your terminal as normal — logifai records it in the background.
 
 ### 3. Install the Claude Code Skill
+
+**Plugin (recommended)**
+
+```
+/plugin marketplace add tomoyaf/logifai
+/plugin install logifai@logifai-marketplace
+```
+
+**Manual copy (alternative)**
 
 ```bash
 cp -r "$(npm root -g)/logifai/skills/logifai" ~/.claude/skills/logifai
@@ -95,12 +104,12 @@ Each log line becomes a structured JSON entry:
 }
 ```
 
-The Claude Code Skill (`~/.claude/skills/logifai/SKILL.md`) gives Claude the knowledge to search these files using `grep`, `jq`, and standard tools — no MCP server needed.
+The Claude Code Skill (installed via `/plugin install` or manually to `~/.claude/skills/logifai/SKILL.md`) gives Claude the knowledge to search these files using `grep`, `jq`, and standard tools — no MCP server needed.
 
 ## CLI Reference
 
 ```
-logifai capture [options]
+command 2>&1 | logifai [options]
 
 Options:
   --source <name>    Source label for log entries (default: "unknown")
@@ -110,20 +119,22 @@ Options:
   --version          Show version
 ```
 
+When stdin is piped, logifai automatically captures and stores logs. No subcommand needed.
+
 ### Examples
 
 ```bash
 # Basic capture
-npm run dev 2>&1 | logifai capture
+npm run dev 2>&1 | logifai
 
 # Label the source
-npm run build 2>&1 | logifai capture --source build
+npm run build 2>&1 | logifai --source build
 
 # Capture without terminal echo
-npm test 2>&1 | logifai capture --no-passthrough
+npm test 2>&1 | logifai --no-passthrough
 
 # Capture any command
-docker compose up 2>&1 | logifai capture --source docker
+docker compose up 2>&1 | logifai --source docker
 ```
 
 ## Storage

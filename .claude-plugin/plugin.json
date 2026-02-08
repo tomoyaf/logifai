@@ -1,0 +1,13 @@
+{
+  "name": "logifai",
+  "version": "0.1.0",
+  "description": "Auto-capture development command output and search/analyze with Claude Code",
+  "author": {
+    "name": "Tomoya Fujita"
+  },
+  "homepage": "https://github.com/tomoyaf/logifai#readme",
+  "repository": "https://github.com/tomoyaf/logifai",
+  "license": "MIT",
+  "keywords": ["logging", "capture", "cli", "claude-code", "developer-tools"],
+  "skills": "./skills/"
+}

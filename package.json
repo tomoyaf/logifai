@@ -8,10 +8,29 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "author": "Tomoya Fujita",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomoyaf/logifai.git"
+  },
+  "homepage": "https://github.com/tomoyaf/logifai#readme",
+  "bugs": {
+    "url": "https://github.com/tomoyaf/logifai/issues"
+  },
+  "files": [
+    "dist",
+    "!dist/__tests__",
+    "skills",
+    ".claude-plugin",
+    "marketplace.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "node --test dist/__tests__/*.test.js",
-    "pretest": "tsc"
+    "pretest": "tsc",
+    "prepublishOnly": "npm run build && npm test"
   },
   "engines": {
     "node": ">=20"

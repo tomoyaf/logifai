@@ -53,7 +53,7 @@ describe("e2e", () => {
     const { stdout, code } = await runCli(["--help"]);
     assert.equal(code, 0);
     assert.ok(stdout.includes("logifai"));
-    assert.ok(stdout.includes("capture"));
+    assert.ok(stdout.includes("command 2>&1 | logifai"));
   });
 
   it("--version prints version", async () => {
@@ -62,10 +62,10 @@ describe("e2e", () => {
     assert.match(stdout.trim(), /^\d+\.\d+\.\d+$/);
   });
 
-  it("exits with error when no command given", async () => {
-    const { stderr, code } = await runCli([]);
-    assert.equal(code, 1);
-    assert.ok(stderr.includes("No command specified"));
+  it("defaults to capture when stdin is piped with no subcommand", async () => {
+    const env = { ...process.env, XDG_STATE_HOME: tmpDir };
+    const { code } = await runCli([], { input: "test line\n", env });
+    assert.equal(code, 0);
   });
 
   it("captures piped input to NDJSON file", async () => {
@@ -81,7 +81,7 @@ describe("e2e", () => {
     ].join("\n");
 
     const { stdout, code } = await runCli(
-      ["capture", "--source", "e2e-test", "--project", "/test/app"],
+      ["--source", "e2e-test", "--project", "/test/app"],
       { input: inputLines, env }
     );
 
@@ -128,10 +128,20 @@ describe("e2e", () => {
   it("--no-passthrough suppresses stdout echo", async () => {
     const env = { ...process.env, XDG_STATE_HOME: tmpDir };
     const { stdout, code } = await runCli(
-      ["capture", "--no-passthrough"],
+      ["--no-passthrough"],
       { input: "test line\n", env }
     );
     assert.equal(code, 0);
     assert.equal(stdout, "");
+  });
+
+  it("'capture' subcommand still works for backward compatibility", async () => {
+    const env = { ...process.env, XDG_STATE_HOME: tmpDir };
+    const { stdout, code } = await runCli(
+      ["capture", "--source", "compat-test"],
+      { input: "hello\n", env }
+    );
+    assert.equal(code, 0);
+    assert.ok(stdout.includes("hello"));
   });
 });

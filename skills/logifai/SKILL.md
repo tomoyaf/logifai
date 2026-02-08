@@ -6,7 +6,7 @@ allowed-tools: Read, Grep, Glob, Bash
 
 # logifai Development Logs
 
-logifai automatically captures output from development commands (e.g. `npm run dev 2>&1 | logifai capture`) and saves them as NDJSON files.
+logifai automatically captures output from development commands (e.g. `npm run dev 2>&1 | logifai`) and saves them as NDJSON files.
 
 ## Log Location
 
