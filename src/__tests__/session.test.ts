@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   generateSessionId,
   getGitBranch,
+  getGitCommit,
   formatSessionFilename,
   createSession,
 } from "../session.js";
@@ -32,6 +33,16 @@ describe("session", () => {
     });
   });
 
+  describe("getGitCommit", () => {
+    it("returns a short hash string or null", async () => {
+      const commit = await getGitCommit();
+      assert.ok(
+        commit === null || (typeof commit === "string" && /^[0-9a-f]{7,}$/.test(commit)),
+        `expected short hex hash or null, got: ${commit}`
+      );
+    });
+  });
+
   describe("formatSessionFilename", () => {
     it("formats correctly", () => {
       const date = new Date("2026-02-08T10:30:45.000Z");
@@ -57,6 +68,11 @@ describe("session", () => {
       // gitBranch is string or null
       assert.ok(
         session.gitBranch === null || typeof session.gitBranch === "string"
+      );
+      // gitCommit is short hash or null
+      assert.ok(
+        session.gitCommit === null ||
+          (typeof session.gitCommit === "string" && /^[0-9a-f]{7,}$/.test(session.gitCommit))
       );
     });
   });

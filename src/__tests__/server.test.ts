@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, writeFile, mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { request } from "node:http";
@@ -18,6 +18,7 @@ function makeEntry(overrides: Partial<LogEntry> = {}): LogEntry {
     project: "/app",
     session_id: "abc12345",
     git_branch: "main",
+    git_commit: "abc1234",
     pid: 1234,
     raw: true,
     stack: null,
@@ -33,6 +34,30 @@ function httpGet(
   return new Promise((resolve, reject) => {
     const req = request(
       { hostname: "127.0.0.1", port, path, method: "GET" },
+      (res) => {
+        let body = "";
+        res.on("data", (d) => (body += d.toString()));
+        res.on("end", () =>
+          resolve({
+            status: res.statusCode || 0,
+            headers: res.headers as Record<string, string | string[] | undefined>,
+            body,
+          })
+        );
+      }
+    );
+    req.on("error", reject);
+    req.end();
+  });
+}
+
+function httpDelete(
+  port: number,
+  path: string
+): Promise<{ status: number; headers: Record<string, string | string[] | undefined>; body: string }> {
+  return new Promise((resolve, reject) => {
+    const req = request(
+      { hostname: "127.0.0.1", port, path, method: "DELETE" },
       (res) => {
         let body = "";
         res.on("data", (d) => (body += d.toString()));
@@ -179,5 +204,29 @@ describe("server", () => {
     await startTestServer();
     const addr = server.address() as AddressInfo;
     assert.equal(addr.address, "127.0.0.1");
+  });
+
+  it("DELETE /api/sessions/:id deletes session file and returns 200", async () => {
+    const logsDir = join(tmpDir, "logifai", "logs");
+    await mkdir(logsDir, { recursive: true });
+
+    const entry = makeEntry({ session_id: "deadbeef" });
+    const filePath = join(logsDir, "session-20260208-120000-deadbeef.ndjson");
+    await writeFile(filePath, JSON.stringify(entry) + "\n");
+
+    await startTestServer();
+    const { status, body } = await httpDelete(port, "/api/sessions/deadbeef");
+    assert.equal(status, 200);
+    const data = JSON.parse(body);
+    assert.equal(data.deleted, "deadbeef");
+
+    // Verify file is actually gone
+    await assert.rejects(() => access(filePath), { code: "ENOENT" });
+  });
+
+  it("DELETE /api/sessions/:id returns 404 for unknown session", async () => {
+    await startTestServer();
+    const { status } = await httpDelete(port, "/api/sessions/nonexistent");
+    assert.equal(status, 404);
   });
 });

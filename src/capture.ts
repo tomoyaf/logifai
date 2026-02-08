@@ -5,11 +5,13 @@ import { createSession } from "./session.js";
 import { normalizeLine, isStackTraceLine, stripAnsi } from "./normalizer.js";
 import { redactLogEntry } from "./redactor.js";
 import { ensureLogsDir, NdjsonWriter, updateCurrentSymlink } from "./storage.js";
+import { autoCleanup } from "./cleanup.js";
 
 export async function capture(
   input: NodeJS.ReadableStream,
   options: CaptureOptions
 ): Promise<void> {
+  await autoCleanup();
   const session = await createSession();
   const dir = await ensureLogsDir();
   const filePath = join(dir, session.filename);

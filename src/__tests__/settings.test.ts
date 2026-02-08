@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { configDir, loadSettings, saveSettings } from "../settings.js";
+import { configDir, loadSettings, saveSettings, DEFAULT_RETENTION } from "../settings.js";
 
 describe("settings", () => {
   let tmpDir: string;
@@ -33,13 +33,13 @@ describe("settings", () => {
   describe("loadSettings", () => {
     it("returns default settings when file does not exist", async () => {
       const settings = await loadSettings();
-      assert.deepEqual(settings, { language: "en" });
+      assert.deepEqual(settings, { language: "en", retention: { ...DEFAULT_RETENTION } });
     });
 
     it("returns saved settings", async () => {
-      await saveSettings({ language: "ja" });
+      await saveSettings({ language: "ja", retention: { ...DEFAULT_RETENTION } });
       const settings = await loadSettings();
-      assert.deepEqual(settings, { language: "ja" });
+      assert.deepEqual(settings, { language: "ja", retention: { ...DEFAULT_RETENTION } });
     });
 
     it("falls back to default for invalid language value", async () => {
@@ -50,7 +50,7 @@ describe("settings", () => {
       await writeFile(join(dir, "settings.json"), JSON.stringify({ language: "fr" }));
 
       const settings = await loadSettings();
-      assert.deepEqual(settings, { language: "en" });
+      assert.deepEqual(settings, { language: "en", retention: { ...DEFAULT_RETENTION } });
     });
 
     it("falls back to default for malformed JSON", async () => {
@@ -60,33 +60,33 @@ describe("settings", () => {
       await writeFile(join(dir, "settings.json"), "not-json{{{");
 
       const settings = await loadSettings();
-      assert.deepEqual(settings, { language: "en" });
+      assert.deepEqual(settings, { language: "en", retention: { ...DEFAULT_RETENTION } });
     });
   });
 
   describe("saveSettings", () => {
     it("creates the config directory", async () => {
-      await saveSettings({ language: "en" });
+      await saveSettings({ language: "en", retention: { ...DEFAULT_RETENTION } });
       const dir = configDir();
       const s = await stat(dir);
       assert.ok(s.isDirectory());
     });
 
     it("saves and round-trips settings", async () => {
-      await saveSettings({ language: "ja" });
+      await saveSettings({ language: "ja", retention: { ...DEFAULT_RETENTION } });
       const raw = await readFile(join(configDir(), "settings.json"), "utf8");
       const parsed = JSON.parse(raw);
       assert.equal(parsed.language, "ja");
 
       const loaded = await loadSettings();
-      assert.deepEqual(loaded, { language: "ja" });
+      assert.deepEqual(loaded, { language: "ja", retention: { ...DEFAULT_RETENTION } });
     });
 
     it("overwrites existing settings", async () => {
-      await saveSettings({ language: "ja" });
-      await saveSettings({ language: "en" });
+      await saveSettings({ language: "ja", retention: { ...DEFAULT_RETENTION } });
+      await saveSettings({ language: "en", retention: { ...DEFAULT_RETENTION } });
       const loaded = await loadSettings();
-      assert.deepEqual(loaded, { language: "en" });
+      assert.deepEqual(loaded, { language: "en", retention: { ...DEFAULT_RETENTION } });
     });
   });
 });

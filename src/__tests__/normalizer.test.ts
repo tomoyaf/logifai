@@ -15,6 +15,7 @@ const mockSession: SessionInfo = {
   startedAt: new Date("2026-02-08T10:00:00Z"),
   filename: "session-20260208-100000-test1234.ndjson",
   gitBranch: "main",
+  gitCommit: "abc1234",
 };
 
 describe("normalizer", () => {
@@ -175,6 +176,7 @@ describe("normalizer", () => {
       assert.equal(entry.project, "/my/project");
       assert.equal(entry.session_id, "test1234");
       assert.equal(entry.git_branch, "main");
+      assert.equal(entry.git_commit, "abc1234");
     });
   });
 });

@@ -8,6 +8,7 @@ export interface LogEntry {
   project: string;
   session_id: string;
   git_branch: string | null;
+  git_commit: string | null;
   pid: number;
   raw: boolean;
   stack: string | null;
@@ -19,6 +20,7 @@ export interface SessionInfo {
   startedAt: Date;
   filename: string;
   gitBranch: string | null;
+  gitCommit: string | null;
 }
 
 export interface CaptureOptions {

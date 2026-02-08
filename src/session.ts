@@ -19,6 +19,19 @@ export function getGitBranch(): Promise<string | null> {
   });
 }
 
+export function getGitCommit(): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile("git", ["rev-parse", "--short", "HEAD"], (err, stdout) => {
+      if (err) {
+        resolve(null);
+        return;
+      }
+      const commit = stdout.trim();
+      resolve(commit || null);
+    });
+  });
+}
+
 export function formatSessionFilename(date: Date, id: string): string {
   const y = date.getFullYear();
   const mo = String(date.getMonth() + 1).padStart(2, "0");
@@ -33,6 +46,7 @@ export async function createSession(): Promise<SessionInfo> {
   const id = generateSessionId();
   const startedAt = new Date();
   const gitBranch = await getGitBranch();
+  const gitCommit = await getGitCommit();
   const filename = formatSessionFilename(startedAt, id);
-  return { id, startedAt, filename, gitBranch };
+  return { id, startedAt, filename, gitBranch, gitCommit };
 }

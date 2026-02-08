@@ -4,8 +4,10 @@ import {
   handleSessions,
   handleEntries,
   handleStream,
+  handleDeleteSession,
   handleGetSettings,
   handlePutSettings,
+  handleCleanup,
   type ApiContext,
 } from "./api.js";
 import type { LiveCapture } from "./live-capture.js";
@@ -55,6 +57,19 @@ export function startServer(options: ServerOptions): Promise<Server> {
       const streamMatch = path.match(/^\/api\/sessions\/([^/]+)\/stream$/);
       if (streamMatch && req.method === "GET") {
         handleStream(req, res, decodeURIComponent(streamMatch[1]), ctx);
+        return;
+      }
+
+      // API: delete session
+      const deleteMatch = path.match(/^\/api\/sessions\/([^/]+)$/);
+      if (deleteMatch && req.method === "DELETE") {
+        await handleDeleteSession(req, res, decodeURIComponent(deleteMatch[1]), ctx);
+        return;
+      }
+
+      // API: cleanup
+      if (path === "/api/cleanup" && req.method === "POST") {
+        await handleCleanup(req, res, ctx);
         return;
       }
 

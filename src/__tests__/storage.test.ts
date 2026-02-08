@@ -20,6 +20,7 @@ function makeEntry(overrides: Partial<LogEntry> = {}): LogEntry {
     project: "/app",
     session_id: "abc12345",
     git_branch: "main",
+    git_commit: "abc1234",
     pid: 1234,
     raw: true,
     stack: null,

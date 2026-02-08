@@ -151,9 +151,9 @@ describe("resolveReference", () => {
     await mkdir(logsDir, { recursive: true });
 
     const entries: LogEntry[] = [
-      { timestamp: "2026-01-01T00:00:00Z", level: "INFO", message: "line 1", source: "test", project: "/test", session_id: "aabbccdd", git_branch: null, pid: 1, raw: true, stack: null, _original: null },
-      { timestamp: "2026-01-01T00:00:01Z", level: "ERROR", message: "line 2", source: "test", project: "/test", session_id: "aabbccdd", git_branch: null, pid: 1, raw: true, stack: "at foo", _original: null },
-      { timestamp: "2026-01-01T00:00:02Z", level: "WARN", message: "line 3", source: "test", project: "/test", session_id: "aabbccdd", git_branch: null, pid: 1, raw: true, stack: null, _original: null },
+      { timestamp: "2026-01-01T00:00:00Z", level: "INFO", message: "line 1", source: "test", project: "/test", session_id: "aabbccdd", git_branch: null, git_commit: null, pid: 1, raw: true, stack: null, _original: null },
+      { timestamp: "2026-01-01T00:00:01Z", level: "ERROR", message: "line 2", source: "test", project: "/test", session_id: "aabbccdd", git_branch: null, git_commit: null, pid: 1, raw: true, stack: "at foo", _original: null },
+      { timestamp: "2026-01-01T00:00:02Z", level: "WARN", message: "line 3", source: "test", project: "/test", session_id: "aabbccdd", git_branch: null, git_commit: null, pid: 1, raw: true, stack: null, _original: null },
     ];
 
     const filename = "session-20260101-000000-aabbccdd.ndjson";

@@ -1,10 +1,12 @@
-import { readdir, stat, readlink } from "node:fs/promises";
+import { readdir, stat, readlink, unlink } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { logsDir } from "./storage.js";
-import { loadSettings, saveSettings } from "./settings.js";
+import { loadSettings, saveSettings, DEFAULT_RETENTION } from "./settings.js";
+import type { RetentionSettings } from "./settings.js";
+import { performCleanup } from "./cleanup.js";
 import type { LiveCapture } from "./live-capture.js";
 import type { LogEntry } from "./types.js";
 
@@ -160,6 +162,35 @@ export function handleStream(
   res.on("close", cleanup);
 }
 
+export async function handleDeleteSession(
+  _req: IncomingMessage,
+  res: ServerResponse,
+  sessionId: string,
+  ctx: ApiContext
+): Promise<void> {
+  // Reject deletion of live session
+  if (ctx.liveCapture && ctx.liveCapture.sessionId === sessionId) {
+    json(res, 409, { error: "Cannot delete live session" });
+    return;
+  }
+
+  const dir = logsDir();
+  const filePath = await resolveSessionFile(dir, sessionId);
+  if (!filePath) {
+    json(res, 404, { error: "Session not found" });
+    return;
+  }
+
+  try {
+    await unlink(filePath);
+  } catch {
+    json(res, 500, { error: "Failed to delete session file" });
+    return;
+  }
+
+  json(res, 200, { deleted: sessionId });
+}
+
 export async function resolveSessionFile(
   dir: string,
   sessionId: string
@@ -190,6 +221,26 @@ export async function resolveSessionFile(
 }
 
 const VALID_LANGUAGES = new Set(["en", "ja"]);
+
+function normalizeRetentionInput(raw: unknown): RetentionSettings {
+  const defaults = DEFAULT_RETENTION;
+  if (!raw || typeof raw !== "object") return { ...defaults };
+  const r = raw as Record<string, unknown>;
+  return {
+    max_total_size_mb:
+      typeof r.max_total_size_mb === "number" && r.max_total_size_mb > 0
+        ? r.max_total_size_mb
+        : defaults.max_total_size_mb,
+    retention_days:
+      typeof r.retention_days === "number" && r.retention_days > 0
+        ? r.retention_days
+        : defaults.retention_days,
+    auto_cleanup:
+      typeof r.auto_cleanup === "boolean"
+        ? r.auto_cleanup
+        : defaults.auto_cleanup,
+  };
+}
 
 export async function handleGetSettings(
   _req: IncomingMessage,
@@ -222,9 +273,34 @@ export async function handlePutSettings(
     json(res, 400, { error: "Invalid language value" });
     return;
   }
-  const settings = { language: (body as Record<string, string>).language as "en" | "ja" };
+  const b = body as Record<string, unknown>;
+  const retention = normalizeRetentionInput(b.retention);
+  const settings = {
+    language: b.language as "en" | "ja",
+    retention,
+  };
   await saveSettings(settings);
   json(res, 200, settings);
+}
+
+export async function handleCleanup(
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: ApiContext,
+): Promise<void> {
+  const settings = await loadSettings();
+  const protectedIds = new Set<string>();
+  if (ctx.liveCapture?.sessionId) {
+    protectedIds.add(ctx.liveCapture.sessionId);
+  }
+
+  const result = await performCleanup({
+    maxAgeDays: settings.retention.retention_days,
+    maxTotalBytes: settings.retention.max_total_size_mb * 1024 * 1024,
+    protectedSessionIds: protectedIds,
+  });
+
+  json(res, 200, result);
 }
 
 function json(res: ServerResponse, status: number, data: unknown): void {

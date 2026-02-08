@@ -20,6 +20,7 @@
   "files": [
     "dist",
     "!dist/__tests__",
+    "!dist/tools",
     "skills",
     ".claude-plugin",
     "marketplace.json",
@@ -30,7 +31,8 @@
     "build": "tsc",
     "test": "node --test dist/__tests__/*.test.js",
     "pretest": "tsc",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm test",
+    "generate-logs": "node dist/tools/log-generator.js"
   },
   "engines": {
     "node": ">=20"

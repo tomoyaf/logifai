@@ -1,6 +1,6 @@
 export type { LogEntry, LogLevel, SessionInfo, CaptureOptions } from "./types.js";
 export { capture } from "./capture.js";
-export { createSession, generateSessionId, getGitBranch } from "./session.js";
+export { createSession, generateSessionId, getGitBranch, getGitCommit } from "./session.js";
 export { normalizeLine, detectLevel, isStackTraceLine, stripAnsi } from "./normalizer.js";
 export { redact, redactLogEntry } from "./redactor.js";
 export { logsDir, ensureLogsDir, NdjsonWriter, updateCurrentSymlink } from "./storage.js";
@@ -8,5 +8,7 @@ export { startServer } from "./server.js";
 export { LiveCapture } from "./live-capture.js";
 export { parseReference, expandLineSpec, resolveReference, formatReference } from "./ref.js";
 export type { LineRef, ResolvedEntry } from "./ref.js";
-export { loadSettings, saveSettings, configDir } from "./settings.js";
-export type { Settings } from "./settings.js";
+export { loadSettings, saveSettings, configDir, DEFAULT_RETENTION } from "./settings.js";
+export type { Settings, RetentionSettings } from "./settings.js";
+export { performCleanup, autoCleanup, parseDuration, parseSize } from "./cleanup.js";
+export type { CleanupResult, CleanupOptions } from "./cleanup.js";

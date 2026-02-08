@@ -4,6 +4,8 @@ import { capture } from "./capture.js";
 import { startServer } from "./server.js";
 import { LiveCapture } from "./live-capture.js";
 import { parseReference, resolveReference } from "./ref.js";
+import { performCleanup, parseDuration, parseSize } from "./cleanup.js";
+import { loadSettings } from "./settings.js";
 import type { AddressInfo } from "node:net";
 
 const VERSION = "0.1.0";
@@ -14,10 +16,16 @@ Usage:
   command 2>&1 | logifai [options]    Live capture + Web UI
   logifai [options]                   Browse saved sessions
   logifai show <reference>            Resolve a log line reference
+  logifai cleanup [options]           Clean up old session files
 
 Commands:
   show <reference>   Resolve a logifai:// reference and print entries
     --format json|text   Output format (default: json)
+
+  cleanup            Delete old session files based on retention settings
+    --older-than <duration>  Delete sessions older than (e.g. "30d")
+    --max-size <size>        Max total size (e.g. "1G", "500M")
+    --dry-run                Show what would be deleted without deleting
 
 Options:
   --source <name>    Source label (default: "unknown")
@@ -38,6 +46,9 @@ function parseArgs(args: string[]): {
   noUi: boolean;
   showRef: string;
   format: "json" | "text";
+  olderThan: string;
+  maxSize: string;
+  dryRun: boolean;
 } {
   let command: string | null = null;
   let source = "unknown";
@@ -47,11 +58,16 @@ function parseArgs(args: string[]): {
   let noUi = false;
   let showRef = "";
   let format: "json" | "text" = "json";
+  let olderThan = "";
+  let maxSize = "";
+  let dryRun = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "capture") {
       command = "capture";
+    } else if (arg === "cleanup") {
+      command = "cleanup";
     } else if (arg === "show") {
       command = "show";
       if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
@@ -70,6 +86,12 @@ function parseArgs(args: string[]): {
       passthrough = false;
     } else if (arg === "--no-ui") {
       noUi = true;
+    } else if (arg === "--older-than" && i + 1 < args.length) {
+      olderThan = args[++i];
+    } else if (arg === "--max-size" && i + 1 < args.length) {
+      maxSize = args[++i];
+    } else if (arg === "--dry-run") {
+      dryRun = true;
     } else if (arg === "--help" || arg === "-h") {
       process.stdout.write(HELP);
       process.exit(0);
@@ -79,7 +101,14 @@ function parseArgs(args: string[]): {
     }
   }
 
-  return { command, source, project, passthrough, port, noUi, showRef, format };
+  return { command, source, project, passthrough, port, noUi, showRef, format, olderThan, maxSize, dryRun };
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 async function main(): Promise<void> {
@@ -104,6 +133,47 @@ async function main(): Promise<void> {
         }
       } else {
         process.stdout.write(JSON.stringify(entries, null, 2) + "\n");
+      }
+    } catch (err) {
+      process.stderr.write(`Error: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  // cleanup command
+  if (parsed.command === "cleanup") {
+    try {
+      let maxAgeDays: number | undefined;
+      let maxTotalBytes: number | undefined;
+
+      if (parsed.olderThan) {
+        maxAgeDays = parseDuration(parsed.olderThan);
+      }
+      if (parsed.maxSize) {
+        maxTotalBytes = parseSize(parsed.maxSize);
+      }
+
+      // If no CLI options given, use settings
+      if (maxAgeDays === undefined && maxTotalBytes === undefined) {
+        const settings = await loadSettings();
+        maxAgeDays = settings.retention.retention_days;
+        maxTotalBytes = settings.retention.max_total_size_mb * 1024 * 1024;
+      }
+
+      const result = await performCleanup({
+        maxAgeDays,
+        maxTotalBytes,
+        dryRun: parsed.dryRun,
+      });
+
+      if (parsed.dryRun) {
+        process.stdout.write(`Dry run: would delete ${result.deletedCount} session(s), freeing ${formatBytes(result.freedBytes)}\n`);
+        for (const f of result.deletedFiles) {
+          process.stdout.write(`  ${f}\n`);
+        }
+      } else {
+        process.stdout.write(`Deleted ${result.deletedCount} session(s), freed ${formatBytes(result.freedBytes)}\n`);
       }
     } catch (err) {
       process.stderr.write(`Error: ${err instanceof Error ? err.message : String(err)}\n`);

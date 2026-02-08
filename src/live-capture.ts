@@ -6,6 +6,7 @@ import { createSession } from "./session.js";
 import { normalizeLine, isStackTraceLine, stripAnsi } from "./normalizer.js";
 import { redactLogEntry } from "./redactor.js";
 import { ensureLogsDir, NdjsonWriter, updateCurrentSymlink } from "./storage.js";
+import { autoCleanup } from "./cleanup.js";
 
 export class LiveCapture extends EventEmitter {
   private _sessionId: string = "";
@@ -19,6 +20,7 @@ export class LiveCapture extends EventEmitter {
     input: NodeJS.ReadableStream,
     options: CaptureOptions
   ): Promise<void> {
+    await autoCleanup();
     const session = await createSession();
     this._sessionId = session.id;
     this.lineNum = 0;
