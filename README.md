@@ -34,6 +34,7 @@ When debugging with Claude Code, you're constantly doing this:
 - **Smart Normalization** — auto-detects JSON, infers log levels (ERROR/WARN/INFO/DEBUG), groups stack traces
 - **Automatic Redaction** — API keys, tokens, passwords, and connection strings are masked before storage
 - **Claude Code Skill** — Claude searches your logs automatically when you ask about errors
+- **Log References** — select lines in the Web UI, click **Copy Ref**, paste into Claude — no more dumping hundreds of lines into your prompt
 - **NDJSON Storage** — structured, greppable, `jq`-friendly format
 - **Zero Runtime Dependencies** — single binary, no runtime needed
 - **Self-Update** — `logifai update` checks GitHub Releases and updates in-place
@@ -41,6 +42,12 @@ When debugging with Claude Code, you're constantly doing this:
 ## Quick Start
 
 ### 1. Install
+
+**Homebrew** (macOS / Linux)
+
+```bash
+brew install tomoyaf/logifai/logifai
+```
 
 **macOS / Linux** (shell script)
 
@@ -52,12 +59,6 @@ curl -fsSL https://raw.githubusercontent.com/tomoyaf/logifai/main/install.sh | s
 
 ```powershell
 irm https://raw.githubusercontent.com/tomoyaf/logifai/main/install.ps1 | iex
-```
-
-**Homebrew** (macOS / Linux)
-
-```bash
-brew install tomoyaf/logifai/logifai
 ```
 
 **Scoop** (Windows)
@@ -113,6 +114,16 @@ Just ask Claude Code naturally:
 - "What went wrong with the API call?"
 
 Claude automatically searches your captured logs and responds with context.
+
+#### Log References — keep your prompts small
+
+Instead of pasting hundreds of log lines into Claude, use **log references**:
+
+1. Select error lines in the Web UI
+2. Click **Copy Ref** — a compact URI like `logifai://a1b2c3d4:42,50-55` is copied
+3. Paste into Claude Code — Claude fetches only those lines automatically
+
+This keeps your prompt small and your context window free for deeper analysis.
 
 ## How It Works
 
