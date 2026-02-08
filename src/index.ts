@@ -4,3 +4,5 @@ export { createSession, generateSessionId, getGitBranch } from "./session.js";
 export { normalizeLine, detectLevel, isStackTraceLine, stripAnsi } from "./normalizer.js";
 export { redact, redactLogEntry } from "./redactor.js";
 export { logsDir, ensureLogsDir, NdjsonWriter, updateCurrentSymlink } from "./storage.js";
+export { startServer } from "./server.js";
+export { LiveCapture } from "./live-capture.js";

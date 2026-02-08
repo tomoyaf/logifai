@@ -64,7 +64,7 @@ describe("e2e", () => {
 
   it("defaults to capture when stdin is piped with no subcommand", async () => {
     const env = { ...process.env, XDG_STATE_HOME: tmpDir };
-    const { code } = await runCli([], { input: "test line\n", env });
+    const { code } = await runCli(["--no-ui"], { input: "test line\n", env });
     assert.equal(code, 0);
   });
 
@@ -81,7 +81,7 @@ describe("e2e", () => {
     ].join("\n");
 
     const { stdout, code } = await runCli(
-      ["--source", "e2e-test", "--project", "/test/app"],
+      ["--no-ui", "--source", "e2e-test", "--project", "/test/app"],
       { input: inputLines, env }
     );
 
@@ -128,7 +128,7 @@ describe("e2e", () => {
   it("--no-passthrough suppresses stdout echo", async () => {
     const env = { ...process.env, XDG_STATE_HOME: tmpDir };
     const { stdout, code } = await runCli(
-      ["--no-passthrough"],
+      ["--no-ui", "--no-passthrough"],
       { input: "test line\n", env }
     );
     assert.equal(code, 0);
@@ -138,7 +138,7 @@ describe("e2e", () => {
   it("'capture' subcommand still works for backward compatibility", async () => {
     const env = { ...process.env, XDG_STATE_HOME: tmpDir };
     const { stdout, code } = await runCli(
-      ["capture", "--source", "compat-test"],
+      ["capture", "--no-ui", "--source", "compat-test"],
       { input: "hello\n", env }
     );
     assert.equal(code, 0);
