@@ -125,9 +125,10 @@ main() {
 
   printf '\n'
   if [ "$PATH_ADDED" = "1" ]; then
-    info "To start using logifai, run:"
+    info "To get started, run:"
     printf '\n'
-    info "  source ${RC_FILE}"
+    info "  exec \$SHELL"
+    info "  logifai --version"
     printf '\n'
   else
     info "Done! Run 'logifai --version' to verify."
