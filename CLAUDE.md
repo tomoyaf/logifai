@@ -19,7 +19,7 @@ logifai は、開発コマンドの出力を自動キャプチャし、Claude Co
 
 ### 段階的実装（4フェーズ）
 
-- **Phase 1（最小MVP）**: パイプキャプチャ (`logifai`) + NDJSON 保存 + 正規化エンジン + Claude Code Skill
+- **Phase 1（最小MVP）**: パイプキャプチャ (`logifai`) + NDJSON 保存 + 正規化エンジン + リダクション + Web UI + Claude Code Skill
 - **Phase 2**: 子プロセス対応 (`logifai exec`) + TTY伝播 + シグナル転送
 - **Phase 3**: SQLite FTS5 インデックス + `.logifai.toml` 設定ファイル + `logifai start`
 - **Phase 4**: MCP サーバー + セマンティック検索 + 異常検知

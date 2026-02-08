@@ -31,6 +31,7 @@ When debugging with Claude Code, you're constantly doing this:
 ## Features
 
 - **Pipe & Capture** — `command 2>&1 | logifai` records everything
+- **Web UI** — browser-based log viewer with live streaming, filtering, and search
 - **Smart Normalization** — auto-detects JSON, infers log levels (ERROR/WARN/INFO/DEBUG), groups stack traces
 - **Automatic Redaction** — API keys, tokens, passwords, and connection strings are masked before storage
 - **Claude Code Skill** — Claude searches your logs automatically when you ask about errors
@@ -51,7 +52,13 @@ npm install -g logifai
 npm run dev 2>&1 | logifai
 ```
 
-Output passes through to your terminal as normal — logifai records it in the background.
+Output passes through to your terminal as normal — logifai records it in the background. A Web UI opens at `http://127.0.0.1:3100` for live streaming and search.
+
+To browse previously saved sessions without capturing:
+
+```bash
+logifai
+```
 
 ### 3. Install the Claude Code Skill
 
@@ -87,6 +94,10 @@ stdin ──→ Normalizer ──→ Redactor ──→ NDJSON file
           ├─ Level inference               ├─ session-*.ndjson
           ├─ Stack trace grouping          └─ current.ndjson (symlink)
           └─ CLF/Syslog parsing
+                                       ──→ Web UI (http://127.0.0.1:3100)
+                                           ├─ Live streaming via SSE
+                                           ├─ Level filtering
+                                           └─ Keyword search
 ```
 
 Each log line becomes a structured JSON entry:
@@ -109,22 +120,32 @@ The Claude Code Skill (installed via `/plugin install` or manually to `~/.claude
 ## CLI Reference
 
 ```
-command 2>&1 | logifai [options]
+Usage:
+  command 2>&1 | logifai [options]    Live capture + Web UI
+  logifai [options]                   Browse saved sessions
 
 Options:
-  --source <name>    Source label for log entries (default: "unknown")
-  --project <path>   Project path (default: current directory)
+  --source <name>    Source label (default: "unknown")
+  --project <path>   Project path (default: cwd)
+  --port <number>    Web UI port (default: 3100)
+  --no-ui            Disable Web UI (capture only)
   --no-passthrough   Don't echo stdin to stdout
-  --help             Show help
+  --help             Show this help
   --version          Show version
 ```
 
-When stdin is piped, logifai automatically captures and stores logs. No subcommand needed.
+**Three modes of operation:**
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| **Live capture + Web UI** | Piped stdin (default) | Captures logs, serves Web UI with live streaming |
+| **Capture only** | Piped stdin + `--no-ui` | Captures logs without Web UI (legacy behavior) |
+| **Browse** | No pipe (TTY) | Opens Web UI to browse previously saved sessions |
 
 ### Examples
 
 ```bash
-# Basic capture
+# Basic capture (opens Web UI at http://127.0.0.1:3100)
 npm run dev 2>&1 | logifai
 
 # Label the source
@@ -135,6 +156,15 @@ npm test 2>&1 | logifai --no-passthrough
 
 # Capture any command
 docker compose up 2>&1 | logifai --source docker
+
+# Capture only, no Web UI (legacy mode)
+npm run dev 2>&1 | logifai --no-ui
+
+# Use a custom port
+npm run dev 2>&1 | logifai --port 8080
+
+# Browse saved sessions (no pipe needed)
+logifai
 ```
 
 ## Storage
@@ -193,7 +223,7 @@ All data stays on your machine. No external services, no telemetry, no network c
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| **Phase 1** | Done | Pipe capture, NDJSON storage, normalizer, redactor, Claude Code Skill |
+| **Phase 1** | Done | Pipe capture, NDJSON storage, normalizer, redactor, Web UI, Claude Code Skill |
 | **Phase 2** | Planned | `logifai exec` — child process mode with TTY propagation and signal forwarding |
 | **Phase 3** | Planned | SQLite FTS5 index, `.logifai.toml` config file, `logifai start` |
 | **Phase 4** | Planned | MCP server, semantic search, anomaly detection |
