@@ -1,12 +1,8 @@
 # logifai
 
-
+**Auto-capture development logs for Claude Code — stop copy-pasting terminal output.**
 
 https://github.com/user-attachments/assets/dadd679f-8cbd-4df1-931b-95d4cb981773
-
-
-
-**Auto-capture development logs for Claude Code — stop copy-pasting terminal output.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-brightgreen)](https://github.com/tomoyaf/logifai/releases)
